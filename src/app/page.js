@@ -17,23 +17,6 @@ export default async function HomePage() {
   return <PageContent page={home} site={site}/>
 }
 
-// ── src/app/[slug]/page.js — Dynamic pages ────────────────────────────────
-// In Next.js App Router, create this file at src/app/[slug]/page.js:
-
-export async function generateStaticParams() {
-  const pages = await getPublishedPages()
-  return pages.filter(p=>p.slug!=='home').map(p=>({ slug:p.slug }))
-}
-
-async function DynamicPage({ params }) {
-  const [page, site] = await Promise.all([
-    import('../lib/supabase').then(m=>m.getPageBySlug(params.slug)),
-    import('../lib/supabase').then(m=>m.getSite()),
-  ])
-  if (!page) return <NotFound/>
-  return <PageContent page={page} site={site}/>
-}
-
 // ── Shared page renderer ──────────────────────────────────────────────────
 function PageContent({ page, site }) {
   const blocks = page.blocks || []
@@ -78,6 +61,8 @@ function PageContent({ page, site }) {
   )
 }
 
+export { PageContent, NotFound }
+
 function NotFound() {
   return (
     <div style={{ minHeight:'80vh', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12, color:'#64748B' }}>
@@ -87,5 +72,3 @@ function NotFound() {
     </div>
   )
 }
-
-export { DynamicPage as default }
