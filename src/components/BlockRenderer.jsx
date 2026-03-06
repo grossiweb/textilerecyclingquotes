@@ -1,3 +1,4 @@
+'use client'
 // Block renderer — maps block types from CMS to styled React components
 
 export function BlockRenderer({ block, site }) {
