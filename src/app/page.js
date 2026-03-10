@@ -26,12 +26,35 @@ function PageContent({ page, site }) {
       {page.seo?.schema && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: page.seo.schema }}/>
       )}
-      {/* Breadcrumbs for non-home pages */}
-      {page.slug !== 'home' && (
+      {/* Breadcrumbs for non-home pages — supports nested slugs */}
+      {page.slug !== 'home' && page.slug !== 'index' && (
         <div style={{ padding:'12px 24px', background:'#f8fafc', borderBottom:'1px solid #e2e8f0', fontSize:13, color:'#64748B' }}>
           <a href="/" style={{ color:'#3B82F6', textDecoration:'none' }}>Home</a>
-          <span style={{ margin:'0 8px' }}>›</span>
-          {page.title}
+          {(() => {
+            const parts = (page.slug || '').split('/').filter(Boolean)
+            if (parts.length <= 1) return (
+              <>
+                <span style={{ margin:'0 8px' }}>›</span>
+                {page.title}
+              </>
+            )
+            // Build breadcrumb trail for nested pages like services/web-design
+            return parts.map((part, i) => {
+              const isLast = i === parts.length - 1
+              const path = '/' + parts.slice(0, i + 1).join('/')
+              const label = isLast ? page.title : part.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+              return (
+                <span key={i}>
+                  <span style={{ margin:'0 8px' }}>›</span>
+                  {isLast ? (
+                    <span>{label}</span>
+                  ) : (
+                    <a href={path} style={{ color:'#3B82F6', textDecoration:'none' }}>{label}</a>
+                  )}
+                </span>
+              )
+            })
+          })()}
         </div>
       )}
       {/* Render all blocks */}

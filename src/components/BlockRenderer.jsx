@@ -22,6 +22,8 @@ export function BlockRenderer({ block, site }) {
     case 'video_embed':  return <VideoEmbed   {...props}/>
     case 'image_block':  return <ImageBlock   {...props}/>
     case 'map_embed':    return <MapEmbed     {...props}/>
+    case 'breadcrumb':   return <Breadcrumb  {...props}/>
+    case 'schema_block': return <SchemaBlock  {...props}/>
     default: return (
       <div style={{ padding:'40px 20px', textAlign:'center', border:'2px dashed #ddd', borderRadius:8, color:'#999', margin:'20px auto', maxWidth:800 }}>
         Block: <code>{block.type}</code>
@@ -545,5 +547,35 @@ function Footer({ block, site }) {
         )}
       </div>
     </footer>
+  )
+}
+
+function Breadcrumb({ block }) {
+  const st = block.style || {}
+  const items = block.items || [{ label:'Home', url:'/' }]
+  return (
+    <nav aria-label="Breadcrumb" style={buildBlockStyle(st, { padding:'16px 0' })}>
+      <div style={container}>
+        <ol style={{ display:'flex', alignItems:'center', gap:8, listStyle:'none', padding:0, margin:0, fontSize:13, color:st.textColor||'#64748B' }}>
+          {items.map((item,i)=>(
+            <li key={i} style={{ display:'flex', alignItems:'center', gap:8 }}>
+              {i>0 && <span style={{ color:'#CBD5E1' }}>/</span>}
+              {item.url && i<items.length-1
+                ? <a href={item.url} style={{ color:st.accentColor||'#3B82F6', textDecoration:'none' }}>{item.label}</a>
+                : <span style={{ color:'var(--text)', fontWeight:600 }}>{item.label}</span>
+              }
+            </li>
+          ))}
+        </ol>
+      </div>
+    </nav>
+  )
+}
+
+function SchemaBlock({ block }) {
+  // Renders invisible JSON-LD structured data for SEO/GEO
+  const schema = block.schema || { '@context':'https://schema.org', '@type':'WebPage' }
+  return (
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html:JSON.stringify(schema) }}/>
   )
 }
