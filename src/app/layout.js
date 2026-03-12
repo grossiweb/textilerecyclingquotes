@@ -20,7 +20,11 @@ function buildFontUrl(settings) {
 }
 
 export default async function RootLayout({ children }) {
-  const [site, primaryMenu] = await Promise.all([getSite(), getMenuByLocation('primary')])
+  const [site, primaryMenu, footerMenu] = await Promise.all([
+    getSite(),
+    getMenuByLocation('primary'),
+    getMenuByLocation('footer'),
+  ])
   const s = site?.settings || {}
 
   const fontUrl = buildFontUrl(s)
@@ -65,6 +69,20 @@ export default async function RootLayout({ children }) {
     h1,h2,h3,h4,h5,h6 { font-family:var(--heading-font); font-weight:var(--heading-weight); }
     a { color:var(--link); }
     a:hover { color:var(--link-hover); }
+    .nav-item { position: relative; }
+    .nav-item .nav-dropdown {
+      display: none; position: absolute; top: 100%; left: 0;
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.12); min-width: 220px;
+      padding: 8px 0; z-index: 200;
+    }
+    .nav-item:hover .nav-dropdown { display: block; }
+    .nav-dropdown a {
+      display: block !important; padding: 10px 20px !important; color: #374151 !important;
+      text-decoration: none; font-size: 14px; font-weight: 500;
+      border-radius: 0 !important; transition: background .1s;
+    }
+    .nav-dropdown a:hover { background: #f1f5f9; color: var(--primary) !important; }
   `
 
   return (
@@ -79,6 +97,7 @@ export default async function RootLayout({ children }) {
       <body>
         <Nav site={site} menu={primaryMenu} settings={s}/>
         <main>{children}</main>
+        <SiteFooter site={site} menu={footerMenu} settings={s}/>
       </body>
     </html>
   )
@@ -101,16 +120,60 @@ function Nav({ site, menu, settings }) {
         )}
       </a>
       <div style={{ display:'flex', gap:4, alignItems:'center', flexWrap:'wrap' }}>
-        {items.map(item=>(
-          <a key={item.id||item.label}
-            href={item.url || (item.pageId ? '#' : `/${item.label.toLowerCase()}`)}
-            target={item.target||'_self'}
-            style={{ padding:'6px 14px', color:'#475569', textDecoration:'none', fontSize:14, fontWeight:500, borderRadius:6, transition:'all .12s' }}>
-            {item.label}
-          </a>
+        {items.map(item => (
+          <div key={item.id||item.label} className="nav-item">
+            <a
+              href={item.url || `/${item.label.toLowerCase()}`}
+              style={{ padding:'6px 14px', color:'#475569', textDecoration:'none', fontSize:14, fontWeight:500, borderRadius:6, display:'flex', alignItems:'center', gap:4 }}
+            >
+              {item.label}
+              {item.children?.length > 0 && <span style={{ fontSize:10, opacity:0.6 }}>&#9662;</span>}
+            </a>
+            {item.children?.length > 0 && (
+              <div className="nav-dropdown">
+                {item.children.map(child => (
+                  <a key={child.id||child.label} href={child.url}>{child.label}</a>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
         <a href="/contact" style={{ marginLeft:8, padding:'7px 16px', background:primaryColor, color:'#fff', textDecoration:'none', fontSize:14, fontWeight:600, borderRadius:`${btnRadius}px` }}>Contact</a>
       </div>
     </nav>
+  )
+}
+
+function SiteFooter({ site, menu, settings }) {
+  const items = menu?.items || []
+  const s = settings || {}
+  const footerBg = s.footerBgColor || '#0f172a'
+  const footerText = s.footerTextColor || '#94A3B8'
+  const name = site?.name || 'Site'
+
+  return (
+    <footer style={{ background: footerBg, color: footerText, padding:'48px 0 24px' }}>
+      <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:40, marginBottom:32 }}>
+          <div style={{ maxWidth:320 }}>
+            <div style={{ fontWeight:800, fontSize:20, color:'#fff', marginBottom:12 }}>{name}</div>
+            <p style={{ lineHeight:1.7, fontSize:14, margin:0 }}>{s.seoDescription || ''}</p>
+          </div>
+          {items.length > 0 && (
+            <div>
+              <div style={{ fontWeight:700, fontSize:15, color:'#fff', marginBottom:14 }}>Quick Links</div>
+              {items.map(item => (
+                <div key={item.id||item.label}>
+                  <a href={item.url} style={{ color: footerText, textDecoration:'none', fontSize:14, display:'block', marginBottom:8 }}>{item.label}</a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ borderTop:'1px solid #1e293b', paddingTop:20, fontSize:13 }}>
+          &copy; {new Date().getFullYear()} {name}. All rights reserved.
+        </div>
+      </div>
+    </footer>
   )
 }

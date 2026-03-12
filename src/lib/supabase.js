@@ -16,7 +16,7 @@ export async function getSite() {
 // ── All published pages ────────────────────────────────────────────────────
 export async function getPublishedPages() {
   const { data } = await supabase.from('pages')
-    .select('id,title,slug,blocks,seo,interlinking,page_type_id,sort_order,published_at,page_types(name,slug,icon,color)')
+    .select('id,title,slug,blocks,seo,interlinking,page_type_id,sort_order,published_at,faq_schema,page_types(name,slug,icon,color)')
     .eq('site_id', SITE_ID).eq('status','published').order('sort_order')
   return data || []
 }

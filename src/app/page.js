@@ -24,7 +24,22 @@ function PageContent({ page, site }) {
     <>
       {/* SEO structured data */}
       {page.seo?.schema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: page.seo.schema }}/>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: typeof page.seo.schema === 'string' ? page.seo.schema : JSON.stringify(page.seo.schema) }}/>
+      )}
+      {/* FAQ Schema.org structured data */}
+      {page.faq_schema && page.faq_schema.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          'mainEntity': page.faq_schema.map(faq => ({
+            '@type': 'Question',
+            'name': faq.q || faq.question,
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': faq.a || faq.answer,
+            }
+          }))
+        })}}/>
       )}
       {/* Breadcrumbs for non-home pages — supports nested slugs */}
       {page.slug !== 'home' && page.slug !== 'index' && (
